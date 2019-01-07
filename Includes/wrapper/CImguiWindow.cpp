@@ -182,6 +182,7 @@ BOOL CImguiWindow::InitializeWin()
 		NULL, NULL, NULL, NULL);
 
 	// create a borderless window
+	// note, if you create a borderless window, you won't have a caption bar to move window.
 // 	m_hWnd = CreateWindowExW(  WS_EX_APPWINDOW, L"ImguiWin", L"ImguiWin", 
 // 		WS_POPUP, 
 // 		CW_USEDEFAULT, CW_USEDEFAULT,
@@ -276,43 +277,47 @@ LRESULT CALLBACK CImguiWindow::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, L
 
 	switch (uMsg)
 	{
-	case WM_LBUTTONDOWN:
-		//Restrict mouse input to current window
-		SetCapture(hWnd);
-
-		//Get the click position
-		xClick = LOWORD(lParam);
-		yClick = HIWORD(lParam);
-		bLButton = true;
-		break;
-
-	case WM_LBUTTONUP:
-		//Window no longer requires all mouse input
-		ReleaseCapture();
-		bLButton = false;
-		break;
-
-	case WM_MOUSEMOVE:
-		{
-			if (bLButton && GetCapture() == hWnd)  //Check if this window has mouse input
-			{
-				//Get the window's screen coordinates
-				RECT rcWindow;
-				GetWindowRect(hWnd,&rcWindow);
-
-				//Get the current mouse coordinates
-				int xMouse = GET_X_LPARAM(lParam);
-				int yMouse = GET_Y_LPARAM(lParam);
-
-				//Calculate the new window coordinates
-				int xWindow = rcWindow.left + xMouse - xClick;
-				int yWindow = rcWindow.top + yMouse - yClick;
-				
-				//Set the window's new screen position (don't resize or change z-order)
-				SetWindowPos(hWnd,NULL,xWindow,yWindow,0,0,SWP_NOSIZE|SWP_NOZORDER);
-			}
-			break;
-		}
+		// drag any where to move the whole window
+		// note, it may affect the input text filed, suggest not to use this.
+/*
+			case WM_LBUTTONDOWN:
+				//Restrict mouse input to current window
+				SetCapture(hWnd);
+		
+				//Get the click position
+				xClick = LOWORD(lParam);
+				yClick = HIWORD(lParam);
+				bLButton = true;
+				break;
+		
+			case WM_LBUTTONUP:
+				//Window no longer requires all mouse input
+				ReleaseCapture();
+				bLButton = false;
+				break;
+		
+			case WM_MOUSEMOVE:
+				{
+					if (bLButton && GetCapture() == hWnd)  //Check if this window has mouse input
+					{
+						//Get the window's screen coordinates
+						RECT rcWindow;
+						GetWindowRect(hWnd,&rcWindow);
+		
+						//Get the current mouse coordinates
+						int xMouse = GET_X_LPARAM(lParam);
+						int yMouse = GET_Y_LPARAM(lParam);
+		
+						//Calculate the new window coordinates
+						int xWindow = rcWindow.left + xMouse - xClick;
+						int yWindow = rcWindow.top + yMouse - yClick;
+						
+						//Set the window's new screen position (don't resize or change z-order)
+						SetWindowPos(hWnd,NULL,xWindow,yWindow,0,0,SWP_NOSIZE|SWP_NOZORDER);
+					}
+					break;
+				}*/
+		
 	case WM_PAINT:
 		hdc = BeginPaint(hWnd, &ps);
 		// TODO: Add any drawing code here...
