@@ -3,6 +3,7 @@
 #include "CImguiWindow.h"
 #include "imgui_impl_dx9.h"
 #include "imgui_impl_win32.h"
+#include "d3dx9.h" //include a directx header
 
 #pragma	comment(lib, "D3dx9.lib")
 #pragma	comment(lib, "D3d9.lib")
@@ -29,6 +30,8 @@ m_nWindowWidth(nWidth)
 	// initialize d3d9
 	if(!InitializeD3D())
 		CleanupDevice();
+
+	InitializeResource();
 }
 
 CImguiWindow::~CImguiWindow()
@@ -79,6 +82,21 @@ void CImguiWindow::DrawCustomContent()
 		ImGui::Separator();
 
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
+		ImGui::Separator();
+
+		ImGui::Text("draw image");
+
+		ImageInfo* pImageInfo= GetImageInfo(L"C:\\Users\\Public\\Pictures\\Sample Pictures\\flower.jpg");
+
+		// draw image
+		if(pImageInfo)
+			//ImGui::Image((ImTextureID)m_imagetex, ImVec2(100, 100), ImVec2(0,0), ImVec2(1,1), ImColor(255,255,255,255), ImColor(255,255,255,128));
+			ImGui::Image((ImTextureID)pImageInfo->m_pTexture, ImVec2(100, 100));
+		else
+			ImGui::Text("failed to initialize image");
+		// example
+		// ImGui::Image(my_tex_id, ImVec2(region_sz * zoom, region_sz * zoom), uv0, uv1, ImColor(255,255,255,255), ImColor(255,255,255,128));
 
 		ImGui::End();
 	}
@@ -147,6 +165,22 @@ void CImguiWindow::CleanupDevice()
 	ImGui_ImplDX9_Shutdown();
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
+
+	// release image texture
+	if(m_mapTexture.size())
+	{
+		std::map<std::wstring, ImageInfo*>::iterator iter;
+
+		for(iter = m_mapTexture.begin(); iter!= m_mapTexture.end(); iter++)
+		{
+			ImageInfo* pinfo = iter->second;
+
+			if(pinfo->m_pTexture)
+				pinfo->m_pTexture->Release();
+
+			delete pinfo;
+		}
+	}
 
 	SAFE_RELEASE(m_pD3dDevice9);
 	SAFE_RELEASE(m_pD3D9);
@@ -256,6 +290,67 @@ BOOL CImguiWindow::InitializeD3D()
 	} while (FALSE);
 
 	return FALSE;
+}
+
+BOOL CImguiWindow::InitializeResource()
+{
+	m_mapTexture.clear();
+
+	return TRUE;
+}
+
+ImageInfo* CImguiWindow::GetImageInfo(std::wstring strPath)
+{
+	if(!m_pD3dDevice9)
+		return NULL;
+
+	std::map<std::wstring, ImageInfo*>::iterator iter = m_mapTexture.find(strPath);
+	if(iter != m_mapTexture.end())
+	{
+		return iter->second;
+	}
+	else
+	{
+		// new texture
+		do 
+		{
+			// 1. check file exist
+			if(!PathFileExistsW(strPath))
+				return false;
+
+			// 2. get info
+			D3DXIMAGE_INFO info;
+			if(SUCCEEDED(D3DXGetImageInfoFromFile(strPath.c_str(), &info)))
+			{
+				info.Width;
+				info.Height;
+			}
+			else
+				break;
+
+			// 3. load image into D3D9 texture
+			LPDIRECT3DTEXTURE9 pTexture = NULL;
+			if(FAILED(D3DXCreateTextureFromFile(m_pD3dDevice9,strPath.c_str(),&pTexture)))//first parameter is our device,second is the path to our image, third is a texture variable to load the image into
+				break;
+
+			if(pTexture)
+			{
+				ImageInfo* pNewImage = new ImageInfo;
+				pNewImage->m_strPath = strPath;
+				pNewImage->m_nW = info.Width;
+				pNewImage->m_nH = info.Height;
+				pNewImage->m_pTexture = pTexture;
+
+				m_mapTexture[strPath] = pNewImage;
+
+				return pNewImage;
+			}
+
+		} while (FALSE);
+		
+	}
+
+	return NULL;
 }
 
 LRESULT CALLBACK CImguiWindow::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
