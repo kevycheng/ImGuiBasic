@@ -4,17 +4,20 @@
 #include "imgui_impl_dx9.h"
 #include "imgui_impl_win32.h"
 #include "d3dx9.h" //include a directx header
+#include <shlwapi.h>
 
 #pragma	comment(lib, "D3dx9.lib")
 #pragma	comment(lib, "D3d9.lib")
 
 #include <string>
+#include <vector>
+#include <clocale>
 
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 #define SAFE_RELEASE(p) { if (p)  { p->Release(); p = NULL; } }
 
-CImguiWindow::CImguiWindow(INT nWidth, INT nHeight) :
+CImguiWindow::CImguiWindow(INT nWidth, INT nHeight, std::wstring strTitle) :
 m_nWindowWidth(nWidth)
 , m_nWindowHeight(nHeight)
 , m_hWnd(NULL)
@@ -23,8 +26,13 @@ m_nWindowWidth(nWidth)
 , m_nBufferW(0)
 , m_nBufferH(0)
 {
+	// error handling
+	if(!m_nWindowWidth || !m_nWindowHeight)
+	{
+		m_nWindowWidth = m_nWindowHeight = CW_USEDEFAULT;
+	}
 	// initialize window
-	if(!InitializeWin())
+	if(!InitializeWin(strTitle))
 		return;
 
 	// initialize d3d9
@@ -186,7 +194,7 @@ void CImguiWindow::CleanupDevice()
 	SAFE_RELEASE(m_pD3D9);
 }
 
-BOOL CImguiWindow::InitializeWin()
+BOOL CImguiWindow::InitializeWin(std::wstring strTitle)
 {
 	if(!m_nWindowWidth || !m_nWindowHeight)
 		return FALSE;
@@ -203,13 +211,14 @@ BOOL CImguiWindow::InitializeWin()
 	wndclass.hCursor		= LoadCursor(NULL, IDC_ARROW);
 	wndclass.hbrBackground	= (HBRUSH)GetStockObject(BLACK_BRUSH);
 	wndclass.lpszMenuName	= NULL;
-	wndclass.lpszClassName	= L"ImguiWin";
+	//wndclass.lpszClassName	= L"ImguiWin";
+	wndclass.lpszClassName  = strTitle.c_str();
 	wndclass.hIconSm		= LoadIcon(NULL, IDI_APPLICATION);
 
 	RegisterClassExW(&wndclass);
 
 	// create win
-	m_hWnd = CreateWindowExW( WS_EX_APPWINDOW, L"ImguiWin", L"ImguiWin", 
+	m_hWnd = CreateWindowExW( WS_EX_APPWINDOW, strTitle.c_str(), strTitle.c_str(),
 		WS_OVERLAPPEDWINDOW, 
 		CW_USEDEFAULT, CW_USEDEFAULT,
 		m_nWindowWidth, m_nWindowHeight,
@@ -299,6 +308,14 @@ BOOL CImguiWindow::InitializeResource()
 	return TRUE;
 }
 
+ImageInfo* CImguiWindow::GetImageInfoA(std::string strPath)
+{
+	std::wstring wstrPath = L"";
+	wstrPath = to_wstring(wstrPath, strPath);
+
+	return GetImageInfo(wstrPath);
+}
+
 ImageInfo* CImguiWindow::GetImageInfo(std::wstring strPath)
 {
 	if(!m_pD3dDevice9)
@@ -315,7 +332,7 @@ ImageInfo* CImguiWindow::GetImageInfo(std::wstring strPath)
 		do 
 		{
 			// 1. check file exist
-			if(!PathFileExistsW(strPath))
+			if(!PathFileExistsW(strPath.c_str()))
 				return false;
 
 			// 2. get info
@@ -351,6 +368,37 @@ ImageInfo* CImguiWindow::GetImageInfo(std::wstring strPath)
 	}
 
 	return NULL;
+}
+
+HWND CImguiWindow::GetMainWnd()
+{
+	return m_hWnd;
+}
+
+std::string& CImguiWindow::to_string(std::string& dest, std::wstring const & src)
+{
+	std::setlocale(LC_CTYPE, "");
+
+	size_t const mbs_len = wcstombs(NULL, src.c_str(), 0);
+	std::vector<char> tmp(mbs_len + 1);
+	wcstombs(&tmp[0], src.c_str(), tmp.size());
+
+	dest.assign(tmp.begin(), tmp.end() - 1);
+
+	return dest;
+}
+
+std::wstring& CImguiWindow::to_wstring(std::wstring& dest, std::string const & src)
+{
+	std::setlocale(LC_CTYPE, "zh_CN");
+
+	size_t const wcs_len = mbstowcs(NULL, src.c_str(), 0);
+	std::vector<wchar_t> tmp(wcs_len + 1);
+	mbstowcs(&tmp[0], src.c_str(), src.size());
+
+	dest.assign(tmp.begin(), tmp.end() - 1);
+
+	return dest;
 }
 
 LRESULT CALLBACK CImguiWindow::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)

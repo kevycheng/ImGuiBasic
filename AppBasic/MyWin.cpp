@@ -1,6 +1,6 @@
 #include "MyWin.h"
 
-CMyWin::CMyWin(INT nWidth, INT nHeight) : CImguiWindow(nWidth, nHeight) 
+CMyWin::CMyWin(INT nWidth, INT nHeight, std::wstring strTitle) : CImguiWindow(nWidth, nHeight, strTitle) 
 {
 
 }

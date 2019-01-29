@@ -12,7 +12,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 					   LPTSTR    lpCmdLine,
 					   int       nCmdShow)
 {
-	CMyWin* pWin = new CMyWin(400,800);
+	CMyWin* pWin = new CMyWin(400,800, L"ImguiDemo");
 
 	if(pWin)
 	{

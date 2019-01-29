@@ -14,12 +14,15 @@ struct ImageInfo
 class CImguiWindow
 {
 public:
-	CImguiWindow(INT nWidth, INT nHeight);
+	CImguiWindow(INT nWidth, INT nHeight, std::wstring strTitle);
 	virtual ~CImguiWindow();
 
 	int WinRun();
 
 	ImageInfo* GetImageInfo(std::wstring strPath);
+	ImageInfo* GetImageInfoA(std::string strPath);
+
+	HWND GetMainWnd();
 
 protected:
 	
@@ -37,10 +40,12 @@ private:
 	std::map<std::wstring, ImageInfo*> m_mapTexture;
 
 	void CleanupDevice();
-	BOOL InitializeWin();
+	BOOL InitializeWin(std::wstring strTitle);
 	BOOL InitializeD3D();
 	BOOL InitializeResource();
 	void Render();
 	void DrawImGuiContent();
 	
+	std::string& to_string(std::string& dest, std::wstring const & src);
+	std::wstring& to_wstring(std::wstring& dest, std::string const & src);
 };
