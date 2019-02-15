@@ -38,10 +38,12 @@ private:
 	IDirect3D9* m_pD3D9;
 	IDirect3DDevice9* m_pD3dDevice9;
 	std::map<std::wstring, ImageInfo*> m_mapTexture;
+	D3DPRESENT_PARAMETERS m_d3dp;
 
 	void CleanupDevice();
 	BOOL InitializeWin(std::wstring strTitle);
 	BOOL InitializeD3D();
+	bool ResetD3D9(HWND hWnd, int nWidth, int nHeight);
 	BOOL InitializeResource();
 	void Render();
 	void DrawImGuiContent();

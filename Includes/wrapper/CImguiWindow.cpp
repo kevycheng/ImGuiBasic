@@ -8,6 +8,7 @@
 
 #pragma	comment(lib, "D3dx9.lib")
 #pragma	comment(lib, "D3d9.lib")
+#pragma	comment(lib, "Shlwapi.lib")
 
 #include <string>
 #include <vector>
@@ -294,6 +295,9 @@ BOOL CImguiWindow::InitializeD3D()
 			ImGui::StyleColorsLight();
 		}
 
+		// copy 
+		memcpy(&m_d3dp, &d3dpp, sizeof(d3dpp));
+
 		return TRUE;
 
 	} while (FALSE);
@@ -469,8 +473,43 @@ LRESULT CALLBACK CImguiWindow::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, L
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
+	case WM_SIZE:
+		if ( wParam != SIZE_MINIMIZED)
+		{
+			ImGui_ImplDX9_InvalidateDeviceObjects();
+
+			// 			g_d3dpp.BackBufferWidth  = LOWORD(lParam);
+			// 			g_d3dpp.BackBufferHeight = HIWORD(lParam);
+
+			char msg[256];
+			sprintf(msg, "wm_size(%d,%d)", LOWORD(lParam), HIWORD(lParam));
+			OutputDebugStringA(msg);
+
+			pObj->ResetD3D9(hWnd, LOWORD(lParam), HIWORD(lParam));
+			// 			if (hr == D3DERR_INVALIDCALL)
+			// 				IM_ASSERT(0);
+			ImGui_ImplDX9_CreateDeviceObjects();
+		}
+		break;
 	default:
 		return DefWindowProc(hWnd, uMsg, wParam, lParam);
 	}
 	return 0;
+}
+
+bool CImguiWindow::ResetD3D9(HWND hWnd, int nWidth, int nHeight)
+{
+	if(!m_pD3D9 || !m_pD3dDevice9)
+		return false;
+
+	m_d3dp.BackBufferWidth = nWidth;
+	m_d3dp.BackBufferHeight = nHeight;
+
+	m_nBufferW = nWidth;
+	m_nBufferH = nHeight;
+
+	if(SUCCEEDED(m_pD3dDevice9->Reset(&m_d3dp)))
+		return true;
+
+	return false;
 }
