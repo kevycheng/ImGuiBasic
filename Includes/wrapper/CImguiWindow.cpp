@@ -481,10 +481,6 @@ LRESULT CALLBACK CImguiWindow::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, L
 			// 			g_d3dpp.BackBufferWidth  = LOWORD(lParam);
 			// 			g_d3dpp.BackBufferHeight = HIWORD(lParam);
 
-			char msg[256];
-			sprintf(msg, "wm_size(%d,%d)", LOWORD(lParam), HIWORD(lParam));
-			OutputDebugStringA(msg);
-
 			pObj->ResetD3D9(hWnd, LOWORD(lParam), HIWORD(lParam));
 			// 			if (hr == D3DERR_INVALIDCALL)
 			// 				IM_ASSERT(0);
