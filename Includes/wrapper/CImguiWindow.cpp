@@ -32,6 +32,10 @@ m_nWindowWidth(nWidth)
 	{
 		m_nWindowWidth = m_nWindowHeight = CW_USEDEFAULT;
 	}
+
+	m_uStyle.style = US_CLASSIC;
+	m_uStyle.cBackground = D3DCOLOR_RGBA(128, 128, 128, 0);
+
 	// initialize window
 	if(!InitializeWin(strTitle))
 		return;
@@ -135,7 +139,7 @@ void CImguiWindow::Render()
 	DrawImGuiContent();
 
 	// draw your own content here.
-	m_pD3dDevice9->Clear( 0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA( 255, 255, 255, 0 ), 1.0f, 0 );
+	m_pD3dDevice9->Clear( 0, NULL, D3DCLEAR_TARGET, m_uStyle.cBackground, 1.0f, 0 );
 
 	m_pD3dDevice9->BeginScene();
 
@@ -227,7 +231,7 @@ BOOL CImguiWindow::InitializeWin(std::wstring strTitle)
 
 	// create a borderless window
 	// note, if you create a borderless window, you won't have a caption bar to move window.
-// 	m_hWnd = CreateWindowExW(  WS_EX_APPWINDOW, L"ImguiWin", L"ImguiWin", 
+// 	m_hWnd = CreateWindowExW(  WS_EX_APPWINDOW, strTitle.c_str(), strTitle.c_str(), 
 // 		WS_POPUP, 
 // 		CW_USEDEFAULT, CW_USEDEFAULT,
 // 		m_nWindowWidth, m_nWindowHeight,
@@ -292,7 +296,21 @@ BOOL CImguiWindow::InitializeD3D()
 			ImGui_ImplWin32_Init(m_hWnd);
 			ImGui_ImplDX9_Init(m_pD3dDevice9);
 
-			ImGui::StyleColorsLight();
+			switch(m_uStyle.style)
+			{
+			case US_CLASSIC:
+				ImGui::StyleColorsClassic();
+				break;
+			case US_LIGHT:
+				ImGui::StyleColorsLight();
+				break;
+			case US_DARK:
+				ImGui::StyleColorsDark();
+				break;
+			}
+			//ImGui::StyleColorsLight();
+			//ImGui::StyleColorsClassic();
+			//ImGui::StyleColorsDark();
 		}
 
 		// copy 

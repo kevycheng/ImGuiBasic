@@ -11,6 +11,18 @@ struct ImageInfo
 	LPDIRECT3DTEXTURE9 m_pTexture;
 };
 
+enum UIStyle{
+	US_LIGHT = 0,
+	US_CLASSIC = 1,
+	US_DARK
+};
+
+struct WinStyle
+{
+	UIStyle style;
+	D3DCOLOR cBackground;
+};
+
 class CImguiWindow
 {
 public:
@@ -39,6 +51,7 @@ private:
 	IDirect3DDevice9* m_pD3dDevice9;
 	std::map<std::wstring, ImageInfo*> m_mapTexture;
 	D3DPRESENT_PARAMETERS m_d3dp;
+	WinStyle m_uStyle;
 
 	void CleanupDevice();
 	BOOL InitializeWin(std::wstring strTitle);
